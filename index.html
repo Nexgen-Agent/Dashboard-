@@ -1,0 +1,686 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Shooting Star Admin Dashboard</title>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@400;500;700;900&family=Exo+2:wght@300;400;500;600;700&display=swap');
+        
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Exo 2', sans-serif;
+            background: #0a0a1a;
+            color: #e0e0ff;
+            overflow-x: hidden;
+        }
+        
+        .logo-text {
+            font-family: 'Orbitron', sans-serif;
+            font-weight: 900;
+            background: linear-gradient(45deg, #8a2be2, #4a00e0, #00bfff);
+            -webkit-background-clip: text;
+            background-clip: text;
+            color: transparent;
+            text-shadow: 0 0 20px rgba(138, 43, 226, 0.5);
+        }
+        
+        .star {
+            position: absolute;
+            background: white;
+            border-radius: 50%;
+            animation: twinkle linear infinite;
+        }
+        
+        @keyframes twinkle {
+            0%, 100% { opacity: 0.2; }
+            50% { opacity: 1; }
+        }
+        
+        .gradient-bg {
+            background: linear-gradient(135deg, #0c0c2e 0%, #1a1a3e 50%, #0c0c2e 100%);
+        }
+        
+        .card-glass {
+            background: rgba(20, 20, 40, 0.7);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(100, 100, 255, 0.2);
+            border-radius: 16px;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+        }
+        
+        .sidebar-item {
+            transition: all 0.3s ease;
+            border-radius: 8px;
+            padding: 12px 16px;
+            margin: 4px 0;
+        }
+        
+        .sidebar-item:hover {
+            background: rgba(100, 100, 255, 0.2);
+            transform: translateX(5px);
+        }
+        
+        .sidebar-item.active {
+            background: rgba(100, 100, 255, 0.3);
+            border-left: 4px solid #8a2be2;
+        }
+        
+        .status-healthy {
+            background: linear-gradient(90deg, rgba(34, 197, 94, 0.2), rgba(34, 197, 94, 0.05));
+            border-left: 4px solid #22c55e;
+        }
+        
+        .status-warning {
+            background: linear-gradient(90deg, rgba(245, 158, 11, 0.2), rgba(245, 158, 11, 0.05));
+            border-left: 4px solid #f59e0b;
+        }
+        
+        .status-critical {
+            background: linear-gradient(90deg, rgba(239, 68, 68, 0.2), rgba(239, 68, 68, 0.05));
+            border-left: 4px solid #ef4444;
+        }
+        
+        .mindmap-node {
+            transition: all 0.3s ease;
+            cursor: pointer;
+        }
+        
+        .mindmap-node:hover {
+            transform: scale(1.05);
+            filter: drop-shadow(0 0 8px rgba(138, 43, 226, 0.7));
+        }
+        
+        .pulse-dot {
+            animation: pulse 2s infinite;
+        }
+        
+        @keyframes pulse {
+            0% { transform: scale(0.95); opacity: 0.7; }
+            50% { transform: scale(1.1); opacity: 1; }
+            100% { transform: scale(0.95); opacity: 0.7; }
+        }
+        
+        .decision-pending {
+            border-left: 4px solid #f59e0b;
+        }
+        
+        .decision-approved {
+            border-left: 4px solid #22c55e;
+        }
+        
+        .decision-rejected {
+            border-left: 4px solid #ef4444;
+        }
+        
+        .message-unread {
+            background: rgba(100, 100, 255, 0.1);
+        }
+        
+        .shooting-star {
+            position: absolute;
+            width: 4px;
+            height: 4px;
+            background: white;
+            border-radius: 50%;
+            box-shadow: 0 0 10px 2px white;
+            animation: shoot linear forwards;
+        }
+        
+        @keyframes shoot {
+            0% { transform: translate(0, 0) rotate(45deg); opacity: 1; }
+            100% { transform: translate(1000px, 1000px) rotate(45deg); opacity: 0; }
+        }
+        
+        .theme-toggle {
+            transition: all 0.5s ease;
+        }
+        
+        .theme-toggle:hover {
+            transform: rotate(180deg);
+        }
+        
+        .notification-badge {
+            animation: pulse 1.5s infinite;
+        }
+    </style>
+</head>
+<body class="gradient-bg min-h-screen">
+    <!-- Background Video -->
+    <div class="fixed inset-0 z-0 overflow-hidden">
+        <video autoplay muted loop class="w-full h-full object-cover opacity-20">
+            <source src="https://assets.mixkit.co/videos/preview/mixkit-abstract-space-background-with-moving-stars-3011-large.mp4" type="video/mp4">
+        </video>
+        <div class="absolute inset-0 bg-gradient-to-b from-transparent to-[#0a0a1a]"></div>
+    </div>
+    
+    <!-- Shooting Stars -->
+    <div id="shooting-stars"></div>
+    
+    <!-- Main Layout -->
+    <div class="relative z-10 flex min-h-screen">
+        <!-- Sidebar -->
+        <div class="w-64 card-glass m-4 hidden md:block">
+            <div class="p-6 border-b border-indigo-900/30">
+                <div class="flex items-center space-x-3">
+                    <div class="w-10 h-10 rounded-full bg-gradient-to-r from-purple-600 to-blue-500 flex items-center justify-center">
+                        <i class="fas fa-meteor text-white"></i>
+                    </div>
+                    <h1 class="logo-text text-xl">SHOOTING STAR</h1>
+                </div>
+                <p class="text-xs text-indigo-300 mt-2">AI-Powered Business Ecosystem</p>
+            </div>
+            
+            <div class="p-4 space-y-2">
+                <div class="sidebar-item active">
+                    <i class="fas fa-chart-pie mr-3 text-purple-400"></i>
+                    <span>Dashboard</span>
+                </div>
+                <div class="sidebar-item">
+                    <i class="fas fa-project-diagram mr-3 text-blue-400"></i>
+                    <span>Mind Map</span>
+                </div>
+                <div class="sidebar-item">
+                    <i class="fas fa-brain mr-3 text-green-400"></i>
+                    <span>AI Hub</span>
+                </div>
+                <div class="sidebar-item">
+                    <i class="fas fa-gavel mr-3 text-yellow-400"></i>
+                    <span>Decisions</span>
+                    <span class="ml-auto bg-red-500 text-white text-xs rounded-full w-5 h-5 flex items-center justify-center">3</span>
+                </div>
+                <div class="sidebar-item">
+                    <i class="fas fa-lightbulb mr-3 text-indigo-400"></i>
+                    <span>Innovation</span>
+                </div>
+                <div class="sidebar-item">
+                    <i class="fas fa-chart-line mr-3 text-pink-400"></i>
+                    <span>Analytics</span>
+                </div>
+                <div class="sidebar-item">
+                    <i class="fas fa-inbox mr-3 text-orange-400"></i>
+                    <span>Inbox</span>
+                    <span class="ml-auto bg-blue-500 text-white text-xs rounded-full w-5 h-5 flex items-center justify-center">12</span>
+                </div>
+                <div class="sidebar-item">
+                    <i class="fas fa-share-alt mr-3 text-teal-400"></i>
+                    <span>Social</span>
+                </div>
+                <div class="sidebar-item">
+                    <i class="fas fa-cube mr-3 text-red-400"></i>
+                    <span>Models</span>
+                </div>
+                <div class="sidebar-item">
+                    <i class="fas fa-cogs mr-3 text-gray-400"></i>
+                    <span>Execution</span>
+                </div>
+                <div class="sidebar-item">
+                    <i class="fas fa-shield-alt mr-3 text-cyan-400"></i>
+                    <span>Security</span>
+                </div>
+                <div class="sidebar-item">
+                    <i class="fas fa-cog mr-3 text-white"></i>
+                    <span>Settings</span>
+                </div>
+            </div>
+            
+            <div class="absolute bottom-0 left-0 right-0 p-4 border-t border-indigo-900/30">
+                <div class="flex items-center justify-between">
+                    <div class="flex items-center space-x-3">
+                        <div class="w-8 h-8 rounded-full bg-gradient-to-r from-purple-500 to-pink-500"></div>
+                        <div>
+                            <p class="text-sm font-medium">Admin User</p>
+                            <p class="text-xs text-indigo-300">Founder</p>
+                        </div>
+                    </div>
+                    <button class="theme-toggle text-indigo-300 hover:text-white">
+                        <i class="fas fa-moon"></i>
+                    </button>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Mobile Header -->
+        <div class="md:hidden w-full card-glass m-4 mb-0 p-4 flex items-center justify-between">
+            <div class="flex items-center space-x-3">
+                <div class="w-8 h-8 rounded-full bg-gradient-to-r from-purple-600 to-blue-500 flex items-center justify-center">
+                    <i class="fas fa-meteor text-white"></i>
+                </div>
+                <h1 class="logo-text text-lg">SHOOTING STAR</h1>
+            </div>
+            <button id="mobile-menu" class="text-white">
+                <i class="fas fa-bars"></i>
+            </button>
+        </div>
+        
+        <!-- Main Content -->
+        <div class="flex-1 p-4 overflow-auto">
+            <div class="mb-6">
+                <h2 class="text-2xl font-bold mb-2">Dashboard</h2>
+                <p class="text-indigo-300">Welcome to your Shooting Star AI Ecosystem</p>
+            </div>
+            
+            <!-- Stats Cards -->
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
+                <div class="card-glass p-4">
+                    <div class="flex items-center justify-between">
+                        <div>
+                            <p class="text-indigo-300 text-sm">System Health</p>
+                            <p class="text-2xl font-bold mt-1">94%</p>
+                        </div>
+                        <div class="w-12 h-12 rounded-full bg-green-900/30 flex items-center justify-center">
+                            <i class="fas fa-heart-pulse text-green-400 text-xl"></i>
+                        </div>
+                    </div>
+                    <div class="mt-3 h-2 bg-gray-700 rounded-full overflow-hidden">
+                        <div class="h-full bg-green-500 rounded-full" style="width: 94%"></div>
+                    </div>
+                </div>
+                
+                <div class="card-glass p-4">
+                    <div class="flex items-center justify-between">
+                        <div>
+                            <p class="text-indigo-300 text-sm">Pending Decisions</p>
+                            <p class="text-2xl font-bold mt-1">12</p>
+                        </div>
+                        <div class="w-12 h-12 rounded-full bg-yellow-900/30 flex items-center justify-center">
+                            <i class="fas fa-gavel text-yellow-400 text-xl"></i>
+                        </div>
+                    </div>
+                    <div class="mt-3 text-xs text-yellow-400">
+                        <i class="fas fa-exclamation-circle mr-1"></i> 3 require immediate attention
+                    </div>
+                </div>
+                
+                <div class="card-glass p-4">
+                    <div class="flex items-center justify-between">
+                        <div>
+                            <p class="text-indigo-300 text-sm">Active Proposals</p>
+                            <p class="text-2xl font-bold mt-1">7</p>
+                        </div>
+                        <div class="w-12 h-12 rounded-full bg-blue-900/30 flex items-center justify-center">
+                            <i class="fas fa-lightbulb text-blue-400 text-xl"></i>
+                        </div>
+                    </div>
+                    <div class="mt-3 text-xs text-blue-400">
+                        <i class="fas fa-clock mr-1"></i> 2 in staging phase
+                    </div>
+                </div>
+                
+                <div class="card-glass p-4">
+                    <div class="flex items-center justify-between">
+                        <div>
+                            <p class="text-indigo-300 text-sm">Messages</p>
+                            <p class="text-2xl font-bold mt-1">24</p>
+                        </div>
+                        <div class="w-12 h-12 rounded-full bg-purple-900/30 flex items-center justify-center">
+                            <i class="fas fa-inbox text-purple-400 text-xl"></i>
+                        </div>
+                    </div>
+                    <div class="mt-3 text-xs text-purple-400">
+                        <i class="fas fa-circle mr-1"></i> 12 unread messages
+                    </div>
+                </div>
+            </div>
+            
+            <!-- System Health & Recent Activity -->
+            <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-6">
+                <!-- System Health -->
+                <div class="lg:col-span-2 card-glass p-4">
+                    <h3 class="text-lg font-bold mb-4 flex items-center">
+                        <i class="fas fa-heart-pulse text-green-400 mr-2"></i> System Health
+                    </h3>
+                    
+                    <div class="space-y-3">
+                        <div class="p-3 rounded-lg status-healthy">
+                            <div class="flex items-center justify-between">
+                                <div class="flex items-center">
+                                    <div class="w-3 h-3 rounded-full bg-green-500 mr-3 pulse-dot"></div>
+                                    <span>AI CEO Dominion</span>
+                                </div>
+                                <span class="text-green-400">Healthy</span>
+                            </div>
+                            <div class="mt-2 text-xs text-gray-400 flex justify-between">
+                                <span>CPU: 24% | Memory: 58%</span>
+                                <span>Last ping: 2 min ago</span>
+                            </div>
+                        </div>
+                        
+                        <div class="p-3 rounded-lg status-healthy">
+                            <div class="flex items-center justify-between">
+                                <div class="flex items-center">
+                                    <div class="w-3 h-3 rounded-full bg-green-500 mr-3 pulse-dot"></div>
+                                    <span>Innovation Hub</span>
+                                </div>
+                                <span class="text-green-400">Healthy</span>
+                            </div>
+                            <div class="mt-2 text-xs text-gray-400 flex justify-between">
+                                <span>CPU: 18% | Memory: 42%</span>
+                                <span>Last ping: 5 min ago</span>
+                            </div>
+                        </div>
+                        
+                        <div class="p-3 rounded-lg status-warning">
+                            <div class="flex items-center justify-between">
+                                <div class="flex items-center">
+                                    <div class="w-3 h-3 rounded-full bg-yellow-500 mr-3 pulse-dot"></div>
+                                    <span>Social Media Engine</span>
+                                </div>
+                                <span class="text-yellow-400">Degraded</span>
+                            </div>
+                            <div class="mt-2 text-xs text-gray-400 flex justify-between">
+                                <span>CPU: 76% | Memory: 82%</span>
+                                <span>Last ping: 8 min ago</span>
+                            </div>
+                        </div>
+                        
+                        <div class="p-3 rounded-lg status-healthy">
+                            <div class="flex items-center justify-between">
+                                <div class="flex items-center">
+                                    <div class="w-3 h-3 rounded-full bg-green-500 mr-3 pulse-dot"></div>
+                                    <span>Analytics Module</span>
+                                </div>
+                                <span class="text-green-400">Healthy</span>
+                            </div>
+                            <div class="mt-2 text-xs text-gray-400 flex justify-between">
+                                <span>CPU: 32% | Memory: 45%</span>
+                                <span>Last ping: 1 min ago</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Recent Activity -->
+                <div class="card-glass p-4">
+                    <h3 class="text-lg font-bold mb-4 flex items-center">
+                        <i class="fas fa-bolt text-yellow-400 mr-2"></i> Recent Activity
+                    </h3>
+                    
+                    <div class="space-y-4">
+                        <div class="flex items-start">
+                            <div class="w-8 h-8 rounded-full bg-blue-900/50 flex items-center justify-center mr-3 mt-1">
+                                <i class="fas fa-lightbulb text-blue-400"></i>
+                            </div>
+                            <div>
+                                <p class="font-medium">New innovation proposal</p>
+                                <p class="text-xs text-gray-400">"Automated content calendar" by AI-CEO</p>
+                                <p class="text-xs text-gray-500">2 hours ago</p>
+                            </div>
+                        </div>
+                        
+                        <div class="flex items-start">
+                            <div class="w-8 h-8 rounded-full bg-green-900/50 flex items-center justify-center mr-3 mt-1">
+                                <i class="fas fa-check text-green-400"></i>
+                            </div>
+                            <div>
+                                <p class="font-medium">Decision approved</p>
+                                <p class="text-xs text-gray-400">"Increase social media budget"</p>
+                                <p class="text-xs text-gray-500">5 hours ago</p>
+                            </div>
+                        </div>
+                        
+                        <div class="flex items-start">
+                            <div class="w-8 h-8 rounded-full bg-purple-900/50 flex items-center justify-center mr-3 mt-1">
+                                <i class="fas fa-cogs text-purple-400"></i>
+                            </div>
+                            <div>
+                                <p class="font-medium">Model retrained</p>
+                                <p class="text-xs text-gray-400">Content generation model v2.1</p>
+                                <p class="text-xs text-gray-500">Yesterday</p>
+                            </div>
+                        </div>
+                        
+                        <div class="flex items-start">
+                            <div class="w-8 h-8 rounded-full bg-red-900/50 flex items-center justify-center mr-3 mt-1">
+                                <i class="fas fa-exclamation-triangle text-red-400"></i>
+                            </div>
+                            <div>
+                                <p class="font-medium">Performance alert</p>
+                                <p class="text-xs text-gray-400">Social module CPU usage high</p>
+                                <p class="text-xs text-gray-500">Yesterday</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Mindmap Preview & Pending Decisions -->
+            <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                <!-- Mindmap Preview -->
+                <div class="lg:col-span-2 card-glass p-4">
+                    <h3 class="text-lg font-bold mb-4 flex items-center justify-between">
+                        <span><i class="fas fa-project-diagram text-blue-400 mr-2"></i> Ecosystem Mindmap</span>
+                        <button class="text-xs bg-blue-900/50 hover:bg-blue-800/50 px-3 py-1 rounded-lg transition-colors">
+                            View Full Map
+                        </button>
+                    </h3>
+                    
+                    <div class="relative h-64 bg-gradient-to-br from-blue-900/20 to-purple-900/20 rounded-lg overflow-hidden border border-blue-800/30">
+                        <!-- Simplified mindmap visualization -->
+                        <div class="absolute inset-0 flex items-center justify-center">
+                            <div class="relative w-64 h-64">
+                                <!-- Central Node -->
+                                <div class="mindmap-node absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-16 h-16 bg-purple-600 rounded-full flex items-center justify-center shadow-lg shadow-purple-500/30">
+                                    <i class="fas fa-meteor text-white"></i>
+                                </div>
+                                
+                                <!-- Child Nodes -->
+                                <div class="mindmap-node absolute top-1/4 left-1/4 w-12 h-12 bg-blue-500 rounded-full flex items-center justify-center shadow-lg shadow-blue-500/30">
+                                    <i class="fas fa-brain text-white text-sm"></i>
+                                </div>
+                                
+                                <div class="mindmap-node absolute top-1/4 right-1/4 w-12 h-12 bg-green-500 rounded-full flex items-center justify-center shadow-lg shadow-green-500/30">
+                                    <i class="fas fa-lightbulb text-white text-sm"></i>
+                                </div>
+                                
+                                <div class="mindmap-node absolute bottom-1/4 left-1/4 w-12 h-12 bg-yellow-500 rounded-full flex items-center justify-center shadow-lg shadow-yellow-500/30">
+                                    <i class="fas fa-chart-line text-white text-sm"></i>
+                                </div>
+                                
+                                <div class="mindmap-node absolute bottom-1/4 right-1/4 w-12 h-12 bg-red-500 rounded-full flex items-center justify-center shadow-lg shadow-red-500/30">
+                                    <i class="fas fa-shield-alt text-white text-sm"></i>
+                                </div>
+                                
+                                <!-- Connection Lines -->
+                                <svg class="absolute inset-0 w-full h-full" style="pointer-events: none;">
+                                    <line x1="50%" y1="50%" x2="25%" y2="25%" stroke="rgba(100, 100, 255, 0.5)" stroke-width="2" />
+                                    <line x1="50%" y1="50%" x2="75%" y2="25%" stroke="rgba(100, 100, 255, 0.5)" stroke-width="2" />
+                                    <line x1="50%" y1="50%" x2="25%" y2="75%" stroke="rgba(100, 100, 255, 0.5)" stroke-width="2" />
+                                    <line x1="50%" y1="50%" x2="75%" y2="75%" stroke="rgba(100, 100, 255, 0.5)" stroke-width="2" />
+                                </svg>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Pending Decisions -->
+                <div class="card-glass p-4">
+                    <h3 class="text-lg font-bold mb-4 flex items-center justify-between">
+                        <span><i class="fas fa-gavel text-yellow-400 mr-2"></i> Pending Decisions</span>
+                        <span class="text-xs bg-yellow-900/50 text-yellow-400 px-2 py-1 rounded-lg">3 Critical</span>
+                    </h3>
+                    
+                    <div class="space-y-4 max-h-64 overflow-y-auto pr-2">
+                        <div class="p-3 rounded-lg decision-pending bg-gray-800/50">
+                            <div class="flex justify-between items-start">
+                                <div>
+                                    <p class="font-medium">Scale social media automation</p>
+                                    <p class="text-xs text-gray-400 mt-1">Increase posting frequency from 5 to 8 times daily</p>
+                                </div>
+                                <span class="text-xs bg-yellow-900/50 text-yellow-400 px-2 py-1 rounded">High</span>
+                            </div>
+                            <div class="mt-3 flex space-x-2">
+                                <button class="flex-1 bg-green-900/50 hover:bg-green-800/50 text-green-400 py-1 rounded text-xs transition-colors">
+                                    Approve
+                                </button>
+                                <button class="flex-1 bg-red-900/50 hover:bg-red-800/50 text-red-400 py-1 rounded text-xs transition-colors">
+                                    Reject
+                                </button>
+                            </div>
+                        </div>
+                        
+                        <div class="p-3 rounded-lg decision-pending bg-gray-800/50">
+                            <div class="flex justify-between items-start">
+                                <div>
+                                    <p class="font-medium">New AI model deployment</p>
+                                    <p class="text-xs text-gray-400 mt-1">Deploy content generation model v2.1 to production</p>
+                                </div>
+                                <span class="text-xs bg-yellow-900/50 text-yellow-400 px-2 py-1 rounded">Medium</span>
+                            </div>
+                            <div class="mt-3 flex space-x-2">
+                                <button class="flex-1 bg-green-900/50 hover:bg-green-800/50 text-green-400 py-1 rounded text-xs transition-colors">
+                                    Approve
+                                </button>
+                                <button class="flex-1 bg-red-900/50 hover:bg-red-800/50 text-red-400 py-1 rounded text-xs transition-colors">
+                                    Reject
+                                </button>
+                            </div>
+                        </div>
+                        
+                        <div class="p-3 rounded-lg decision-pending bg-gray-800/50">
+                            <div class="flex justify-between items-start">
+                                <div>
+                                    <p class="font-medium">Budget allocation increase</p>
+                                    <p class="text-xs text-gray-400 mt-1">Increase Q4 marketing budget by 15%</p>
+                                </div>
+                                <span class="text-xs bg-red-900/50 text-red-400 px-2 py-1 rounded">Critical</span>
+                            </div>
+                            <div class="mt-3 flex space-x-2">
+                                <button class="flex-1 bg-green-900/50 hover:bg-green-800/50 text-green-400 py-1 rounded text-xs transition-colors">
+                                    Approve
+                                </button>
+                                <button class="flex-1 bg-red-900/50 hover:bg-red-800/50 text-red-400 py-1 rounded text-xs transition-colors">
+                                    Reject
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Create background stars
+        function createStars() {
+            const starsContainer = document.body;
+            const starCount = 150;
+            
+            for (let i = 0; i < starCount; i++) {
+                const star = document.createElement('div');
+                star.classList.add('star');
+                
+                // Random position
+                const x = Math.random() * 100;
+                const y = Math.random() * 100;
+                
+                // Random size
+                const size = Math.random() * 3;
+                
+                // Random animation duration
+                const duration = 3 + Math.random() * 10;
+                
+                star.style.left = `${x}vw`;
+                star.style.top = `${y}vh`;
+                star.style.width = `${size}px`;
+                star.style.height = `${size}px`;
+                star.style.animationDuration = `${duration}s`;
+                
+                starsContainer.appendChild(star);
+            }
+        }
+        
+        // Create shooting stars
+        function createShootingStars() {
+            const container = document.getElementById('shooting-stars');
+            const shootInterval = setInterval(() => {
+                const shootingStar = document.createElement('div');
+                shootingStar.classList.add('shooting-star');
+                
+                // Random starting position
+                const startX = -100;
+                const startY = Math.random() * 100;
+                
+                shootingStar.style.left = `${startX}px`;
+                shootingStar.style.top = `${startY}vh`;
+                
+                // Random animation duration
+                const duration = 1 + Math.random() * 2;
+                shootingStar.style.animationDuration = `${duration}s`;
+                
+                container.appendChild(shootingStar);
+                
+                // Remove element after animation completes
+                setTimeout(() => {
+                    shootingStar.remove();
+                }, duration * 1000);
+            }, 2000);
+        }
+        
+        // Mobile menu toggle
+        document.getElementById('mobile-menu').addEventListener('click', function() {
+            const sidebar = document.querySelector('.md\\:hidden + .flex-1 .card-glass');
+            sidebar.classList.toggle('hidden');
+        });
+        
+        // Theme toggle
+        document.querySelector('.theme-toggle').addEventListener('click', function() {
+            document.body.classList.toggle('light-mode');
+            const icon = this.querySelector('i');
+            if (document.body.classList.contains('light-mode')) {
+                icon.classList.remove('fa-moon');
+                icon.classList.add('fa-sun');
+                document.body.style.background = '#f0f2f5';
+                document.body.style.color = '#333';
+            } else {
+                icon.classList.remove('fa-sun');
+                icon.classList.add('fa-moon');
+                document.body.style.background = '#0a0a1a';
+                document.body.style.color = '#e0e0ff';
+            }
+        });
+        
+        // Initialize
+        document.addEventListener('DOMContentLoaded', function() {
+            createStars();
+            createShootingStars();
+            
+            // Add hover effects to cards
+            const cards = document.querySelectorAll('.card-glass');
+            cards.forEach(card => {
+                card.addEventListener('mouseenter', function() {
+                    this.style.transform = 'translateY(-5px)';
+                    this.style.transition = 'transform 0.3s ease';
+                });
+                
+                card.addEventListener('mouseleave', function() {
+                    this.style.transform = 'translateY(0)';
+                });
+            });
+            
+            // Add click effects to buttons
+            const buttons = document.querySelectorAll('button');
+            buttons.forEach(button => {
+                button.addEventListener('mousedown', function() {
+                    this.style.transform = 'scale(0.95)';
+                });
+                
+                button.addEventListener('mouseup', function() {
+                    this.style.transform = 'scale(1)';
+                });
+                
+                button.addEventListener('mouseleave', function() {
+                    this.style.transform = 'scale(1)';
+                });
+            });
+        });
+    </script>
+</body>
+          </html>
